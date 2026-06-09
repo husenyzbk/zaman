@@ -1,0 +1,278 @@
+@import "tailwindcss";
+
+/* ── Theme variables ─────────────────────────────────────── */
+:root {
+  --bg-deep:     #0a0c14;
+  --bg-base:     #0f1117;
+  --bg-modal:    #13151f;
+  --bg-surface:  #1a1d2e;
+  --bg-hover:    #1e2235;
+  --bg-elevated: #232640;
+  --border:      #2e3150;
+  --border-mid:  #3a3f55;
+  --text-dim:    #4a5068;
+  --text-muted:  #6b7280;
+  --text-body:   #cbd5e1;
+  --text-main:   #e2e8f0;
+  --text-bright: #ffffff;
+}
+
+[data-theme="light"] {
+  --bg-deep:     #dde4ed;
+  --bg-base:     #eef2f7;
+  --bg-modal:    #ffffff;
+  --bg-surface:  #f5f8fc;
+  --bg-hover:    #e8eef6;
+  --bg-elevated: #dde4ed;
+  --border:      #c8d4e0;
+  --border-mid:  #93a3b4;
+  --text-dim:    #93a3b4;
+  --text-muted:  #6b7280;
+  --text-body:   #374151;
+  --text-main:   #1e293b;
+  --text-bright: #0f172a;
+}
+
+/* Light-mode overrides for Tailwind text utilities */
+[data-theme="light"] .text-white   { color: var(--text-bright) !important; }
+[data-theme="light"] .text-slate-100,
+[data-theme="light"] .text-slate-200,
+[data-theme="light"] .text-slate-300 { color: var(--text-main) !important; }
+[data-theme="light"] .text-slate-400,
+[data-theme="light"] .text-slate-500 { color: var(--text-muted) !important; }
+[data-theme="light"] .text-slate-600,
+[data-theme="light"] .text-slate-700 { color: var(--text-dim) !important; }
+
+/* Light-mode overrides for Tailwind bg utilities (escaped arbitrary values) */
+[data-theme="light"] .bg-\[var\(--bg-base\)\]    { background-color: var(--bg-base) !important; }
+[data-theme="light"] .bg-\[var\(--bg-surface\)\] { background-color: var(--bg-surface) !important; }
+[data-theme="light"] .bg-\[var\(--bg-modal\)\]   { background-color: var(--bg-modal) !important; }
+[data-theme="light"] .bg-\[var\(--bg-deep\)\]    { background-color: var(--bg-deep) !important; }
+[data-theme="light"] .border-\[var\(--border\)\] { border-color: var(--border) !important; }
+
+/* Date input needs light color-scheme in light mode */
+[data-theme="light"] input[type="date"] { color-scheme: light; }
+
+/* Scrollbar */
+[data-theme="light"] ::-webkit-scrollbar-track { background: var(--bg-surface); }
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: var(--border); }
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-base);
+  color: var(--text-main);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow: hidden;
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #1a1d27;
+}
+::-webkit-scrollbar-thumb {
+  background: #3a3f55;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4a5068;
+}
+
+/* Block entrance animation */
+@keyframes zamFadeIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.zam-enter {
+  animation: zamFadeIn 0.18s ease-out both;
+}
+
+/* Lane divider drag handle */
+.zam-divider-handle {
+  cursor: row-resize;
+  user-select: none;
+}
+.zam-divider-handle:hover::after,
+.zam-divider-handle:active::after {
+  background: #6366f155;
+}
+
+/* Hover lift + row/height transition for timeline blocks */
+.zam-block {
+  will-change: transform;
+  transition: top 0.15s ease, height 0.2s ease, transform 0.18s ease;
+}
+.zam-block:hover {
+  transform: translateY(-2px);
+  transition: top 0.15s ease, height 0.2s ease, transform 0.12s ease;
+}
+.zam-block:active {
+  transform: scale(0.97) translateY(-1px);
+  transition: transform 0.06s ease;
+}
+.zam-deleting:hover {
+  transform: none !important;
+}
+
+/* Highlight pulse (from search / keyboard nav) */
+@keyframes zamHighlightPulse {
+  0%, 100% { opacity: 1; }
+  40%       { opacity: 0.45; }
+}
+.zam-highlight-pulse {
+  animation: zamHighlightPulse 0.55s ease-in-out 2;
+}
+
+/* Delete fade-out */
+@keyframes zamFadeOut {
+  0%   { opacity: 1;    transform: scale(1) translateY(0); }
+  100% { opacity: 0;    transform: scale(0.88) translateY(-4px); }
+}
+.zam-deleting {
+  animation: zamFadeOut 0.2s ease-out forwards !important;
+  pointer-events: none !important;
+}
+
+/* Slow breathe for milestone / conflict badges */
+@keyframes zamBreathe {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+.zam-breathe {
+  animation: zamBreathe 2.5s ease-in-out infinite;
+  display: inline-block;
+}
+
+/* Slide in from right (detail panel, people index) */
+@keyframes zamSlideRight {
+  from { transform: translateX(20px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.zam-slide-right {
+  animation: zamSlideRight 0.18s ease-out;
+}
+
+/* Context menu / canvas menu pop */
+@keyframes zamMenuPop {
+  from { transform: scale(0.93); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+.zam-menu-pop {
+  animation: zamMenuPop 0.1s ease-out;
+  transform-origin: top left;
+}
+
+/* Full-screen overlay expand (drill-down) */
+@keyframes zamOverlayFade {
+  from { opacity: 0; transform: scale(0.98); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.zam-overlay-fade {
+  animation: zamOverlayFade 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+/* Arrow entrance fade (quick — line has its own draw animation) */
+@keyframes zamArrowFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.zam-arrow-enter {
+  animation: zamArrowFade 0.08s ease-out;
+}
+
+/* Arrow draw-on (applied to the line path with pathLength="1") */
+@keyframes zamArrowDraw {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+.zam-arrow-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: zamArrowDraw 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  transition: stroke-width 0.15s ease, stroke-opacity 0.15s ease;
+}
+
+/* Arrow delete fade-out */
+@keyframes zamArrowFadeOut {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+.zam-arrow-deleting {
+  animation: zamArrowFadeOut 0.2s ease-out forwards;
+  pointer-events: none !important;
+}
+
+/* Undo button shake */
+@keyframes zamShake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-4px); }
+  40%       { transform: translateX(4px); }
+  60%       { transform: translateX(-3px); }
+  80%       { transform: translateX(3px); }
+}
+.zam-shake {
+  animation: zamShake 0.4s ease-in-out;
+}
+
+/* Today line breathing */
+@keyframes zamTodayPulse {
+  0%, 100% { opacity: 0.15; }
+  50%       { opacity: 0.45; }
+}
+.zam-today-pulse {
+  animation: zamTodayPulse 3s ease-in-out infinite;
+}
+
+/* Tiptap editor content */
+.tiptap-editor { outline: none; }
+.tiptap-editor p { margin: 0.15rem 0; }
+.tiptap-editor p:first-child { margin-top: 0; }
+.tiptap-editor p:last-child { margin-bottom: 0; }
+.tiptap-editor ul { list-style-type: disc; padding-left: 1.25rem; margin: 0.2rem 0; }
+.tiptap-editor ol { list-style-type: decimal; padding-left: 1.25rem; margin: 0.2rem 0; }
+.tiptap-editor li { margin: 0.1rem 0; }
+.tiptap-editor strong { font-weight: 700; color: #e2e8f0; }
+.tiptap-editor em { font-style: italic; }
+/* Placeholder */
+.tiptap-editor p.is-editor-empty:first-child::before {
+  color: #4b5563;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Rendered rich text content */
+.prose-content p { margin: 0.15rem 0; }
+.prose-content p:first-child { margin-top: 0; }
+.prose-content p:last-child { margin-bottom: 0; }
+.prose-content ul { list-style-type: disc; padding-left: 1.25rem; margin: 0.2rem 0; }
+.prose-content ol { list-style-type: decimal; padding-left: 1.25rem; margin: 0.2rem 0; }
+.prose-content li { margin: 0.1rem 0; }
+.prose-content strong { font-weight: 700; }
+.prose-content em { font-style: italic; }
+
+/* Undo / redo canvas flash */
+@keyframes zamUndoFlash {
+  0%   { opacity: 0;    }
+  20%  { opacity: 0.08; }
+  100% { opacity: 0;    }
+}
+.zam-undo-flash {
+  animation: zamUndoFlash 0.45s ease-out forwards;
+  pointer-events: none;
+}
