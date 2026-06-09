@@ -18,7 +18,8 @@
     "publish": {
       "provider": "github",
       "owner": "husenyzbk",
-      "repo": "zaman"
+      "repo": "zaman",
+      "releaseType": "release"
     },
     "win": {
       "target": "nsis",
