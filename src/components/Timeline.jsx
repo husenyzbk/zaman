@@ -4,7 +4,7 @@ import { yearToX, getTickInterval, formatYear, BASE_PX_PER_YEAR } from '../utils
 import { formatDate } from '../utils/format'
 import { RELATIONSHIPS } from '../utils/connections'
 import { CATEGORIES, CATEGORY_MAP } from '../utils/categories'
-import { ChevronDownIcon, ChevronUpIcon, UsersIcon, PlusIcon, DocumentTextIcon } from '@heroicons/react/24/outline'
+import { ChevronDownIcon, ChevronUpIcon, UsersIcon, PlusIcon, DocumentTextIcon, PencilIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import EntityForm from './EntityForm'
 import DetailPanel from './DetailPanel'
 import ChapterModal from './ChapterModal'
@@ -15,6 +15,7 @@ import RelationshipPicker from './RelationshipPicker'
 import ChapterTargetPicker from './ChapterTargetPicker'
 import ContextMenu from './ContextMenu'
 import ConfirmDialog from './ConfirmDialog'
+import PersonProfileModal from './PersonProfileModal'
 
 const AXIS_HEIGHT = 40
 const BLOCK_GAP = 8
@@ -37,6 +38,7 @@ export default function Timeline() {
     density, undo, redo,
     jumpToSubEvent, clearJumpToSubEvent,
     focusModeId, setFocusMode, clearFocusMode,
+    peopleDb, addPerson,
   } = useStore()
 
   const BLOCK_H = BLOCK_HEIGHTS[density] ?? 52
@@ -52,6 +54,7 @@ export default function Timeline() {
   const scrollAnimRef = useRef(null)
   const zoomAnimRef = useRef(null)
   const targetZoomRef = useRef(null)
+  const anchorXRef = useRef(null)
 
   const [showForm, setShowForm] = useState(null)
   const [selectedEntity, setSelectedEntity] = useState(null)
@@ -74,6 +77,7 @@ export default function Timeline() {
   const [hoveredChapter, setHoveredChapter] = useState(null)
   const [showPeopleIndex, setShowPeopleIndex] = useState(false)
   const [highlightedPeople, setHighlightedPeople] = useState(new Set())
+  const [editingPersonId, setEditingPersonId] = useState(null)
   const [editingNoteId, setEditingNoteId] = useState(null)
   const [canvasContextMenu, setCanvasContextMenu] = useState(null) // { screenX, screenY, date, year, yFrac }
 
@@ -364,20 +368,29 @@ export default function Timeline() {
   function handleWheel(e) {
     e.preventDefault()
     if (e.ctrlKey || e.metaKey) {
-      // Smooth zoom with easing toward target
+      const rect = canvasRef.current?.getBoundingClientRect()
+      const mouseX = rect ? e.clientX - rect.left : canvasWidth / 2
+      anchorXRef.current = mouseX
       if (targetZoomRef.current === null) targetZoomRef.current = zoom
       const factor = e.deltaY > 0 ? 0.9 : 1.1
       targetZoomRef.current = Math.min(Math.max(targetZoomRef.current * factor, 0.2), 8)
       if (!zoomAnimRef.current) {
         const tick = () => {
           const cur = useStore.getState().zoom
+          const curScroll = useStore.getState().scrollX
+          const anchorX = anchorXRef.current ?? canvasWidth / 2
           const diff = targetZoomRef.current - cur
           if (Math.abs(diff) < 0.002) {
+            const ratio = targetZoomRef.current / cur
             setZoom(targetZoomRef.current)
+            setScrollX(Math.max(0, (curScroll + anchorX) * ratio - anchorX))
             zoomAnimRef.current = null
             return
           }
-          setZoom(cur + diff * 0.22)
+          const newZoom = cur + diff * 0.22
+          const ratio = newZoom / cur
+          setZoom(newZoom)
+          setScrollX(Math.max(0, (curScroll + anchorX) * ratio - anchorX))
           zoomAnimRef.current = requestAnimationFrame(tick)
         }
         zoomAnimRef.current = requestAnimationFrame(tick)
@@ -443,6 +456,14 @@ export default function Timeline() {
   }
   function togglePerson(name) {
     setHighlightedPeople(prev => { const n = new Set(prev); n.has(name) ? n.delete(name) : n.add(name); return n })
+  }
+  function openPersonProfile(name) {
+    let person = peopleDb.find(p => p.name === name)
+    if (!person) {
+      const id = addPerson(name)
+      person = { id, name, photo: null, bio: '' }
+    }
+    setEditingPersonId(person.id)
   }
 
   function xOnScreen(year) { return yearToX(year, zoom) + offsetX - scrollX }
@@ -1169,16 +1190,31 @@ export default function Timeline() {
               ) : (
                 allPeople.map(([name, count]) => {
                   const active = highlightedPeople.has(name)
+                  const photo = peopleDb?.find(p => p.name === name)?.photo
                   return (
-                    <button
+                    <div
                       key={name}
-                      onClick={() => togglePerson(name)}
-                      className="w-full flex items-center justify-between px-3 py-2 hover:bg-[var(--bg-surface)] transition-colors text-left"
+                      className="w-full flex items-center justify-between px-3 py-2 hover:bg-[var(--bg-surface)] transition-colors"
                       style={{ background: active ? '#6366f115' : 'transparent' }}
                     >
-                      <span className="text-xs truncate flex-1" style={{ color: active ? '#a5b4fc' : '#cbd5e1' }}>{name}</span>
-                      <span className="text-[10px] text-slate-500 flex-shrink-0 ml-2 bg-[var(--bg-surface)] px-1.5 py-0.5 rounded">{count}</span>
-                    </button>
+                      <button
+                        onClick={() => togglePerson(name)}
+                        className="flex items-center gap-2 flex-1 min-w-0 text-left"
+                      >
+                        {photo ? (
+                          <img src={photo} alt={name} className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
+                        ) : (
+                          <UserCircleIcon className="w-5 h-5 text-slate-600 flex-shrink-0" />
+                        )}
+                        <span className="text-xs truncate" style={{ color: active ? '#a5b4fc' : '#cbd5e1' }}>{name}</span>
+                      </button>
+                      <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                        <span className="text-[10px] text-slate-500 bg-[var(--bg-surface)] px-1.5 py-0.5 rounded">{count}</span>
+                        <button onClick={() => openPersonProfile(name)} className="text-slate-500 hover:text-indigo-400 transition-colors" title="Edit profile">
+                          <PencilIcon className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
                   )
                 })
               )}
@@ -1279,6 +1315,12 @@ export default function Timeline() {
           onCancel={() => setConfirmDeleteCtx(null)}
         />
       )}
+
+      {editingPersonId && (() => {
+        const person = peopleDb.find(p => p.id === editingPersonId)
+        if (!person) return null
+        return <PersonProfileModal person={person} onClose={() => setEditingPersonId(null)} />
+      })()}
     </div>
   )
 }

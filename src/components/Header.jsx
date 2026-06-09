@@ -33,6 +33,7 @@ const TYPE_COLOR = { event: '#6366f1', chapter: '#8b5cf6', subEvent: '#14b8a6' }
 export default function Header({ onNewEvent, onNewChapter, onToggleWarRooms, onOpenTextImport, activeWarRoomName, activeWarRoomColor }) {
   const {
     zoom, setZoom,
+    scrollX, setScrollX,
     events, chapters,
     setJumpToYear, setHighlightId, setJumpToSubEvent,
     density, setDensity,
@@ -41,6 +42,14 @@ export default function Header({ onNewEvent, onNewChapter, onToggleWarRooms, onO
     theme, toggleTheme,
     view, setView,
   } = useStore()
+
+  function zoomCentered(factor) {
+    const newZoom = Math.min(Math.max(zoom * factor, 0.2), 8)
+    const anchorX = window.innerWidth / 2
+    const newScrollX = Math.max(0, (scrollX + anchorX) * (newZoom / zoom) - anchorX)
+    setZoom(newZoom)
+    setScrollX(newScrollX)
+  }
 
   const [query, setQuery] = useState('')
   const [focused, setFocused] = useState(false)
@@ -322,11 +331,11 @@ export default function Header({ onNewEvent, onNewChapter, onToggleWarRooms, onO
 
         {/* Zoom */}
         <div className="flex items-center gap-1 bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-1">
-          <button onClick={() => setZoom(zoom / 1.3)} className="text-slate-400 hover:text-white p-1.5 transition-colors" title="Zoom out">
+          <button onClick={() => zoomCentered(1 / 1.3)} className="text-slate-400 hover:text-white p-1.5 transition-colors" title="Zoom out">
             <MagnifyingGlassMinusIcon className="w-4 h-4" />
           </button>
           <span className="text-xs text-slate-500 w-10 text-center">{Math.round(zoom * 100)}%</span>
-          <button onClick={() => setZoom(zoom * 1.3)} className="text-slate-400 hover:text-white p-1.5 transition-colors" title="Zoom in">
+          <button onClick={() => zoomCentered(1.3)} className="text-slate-400 hover:text-white p-1.5 transition-colors" title="Zoom in">
             <MagnifyingGlassPlusIcon className="w-4 h-4" />
           </button>
         </div>

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { XMarkIcon, PencilIcon, TrashIcon, LinkIcon, ArrowsRightLeftIcon, DocumentIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon, PencilIcon, TrashIcon, LinkIcon, ArrowsRightLeftIcon, DocumentIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import { formatDate, formatDateRange } from '../utils/format'
 import { RELATIONSHIP_MAP } from '../utils/connections'
 import { CATEGORY_MAP } from '../utils/categories'
@@ -15,7 +15,7 @@ const MIN_WIDTH = 260
 const MAX_WIDTH = 720
 
 export default function DetailPanel({ entity, type, onClose, onEdit, onDelete }) {
-  const { connections, events, chapters, deleteConnection, setConnectingFrom, focusModeId, setFocusMode, clearFocusMode } = useStore()
+  const { connections, events, chapters, peopleDb, deleteConnection, setConnectingFrom, focusModeId, setFocusMode, clearFocusMode } = useStore()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH)
   const dragRef = useRef(null)
@@ -160,8 +160,52 @@ export default function DetailPanel({ entity, type, onClose, onEdit, onDelete })
         {entity.people?.length > 0 && (
           <Section label="People Involved">
             <div className="flex flex-wrap gap-2">
-              {entity.people.map((p, i) => (
-                <span key={i} className="bg-[var(--bg-base)] border border-[var(--border)] text-slate-300 text-xs px-2.5 py-1 rounded-full">{p}</span>
+              {entity.people.map((p, i) => {
+                const photo = peopleDb?.find((person) => person.name === p)?.photo
+                return (
+                  <span key={i} className="flex items-center gap-1.5 bg-[var(--bg-base)] border border-[var(--border)] text-slate-300 text-xs pl-1 pr-2.5 py-1 rounded-full">
+                    {photo ? (
+                      <img src={photo} alt={p} className="w-4 h-4 rounded-full object-cover" />
+                    ) : (
+                      <UserCircleIcon className="w-4 h-4 text-slate-500" />
+                    )}
+                    {p}
+                  </span>
+                )
+              })}
+            </div>
+          </Section>
+        )}
+        {entity.images?.length > 0 && (
+          <Section label="Images">
+            <div className="grid grid-cols-3 gap-2">
+              {entity.images.map((img, i) => (
+                <a
+                  key={i}
+                  href={img.dataUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block aspect-square rounded-lg overflow-hidden border border-[var(--border)] hover:opacity-90 transition-opacity"
+                >
+                  <img src={img.dataUrl} alt={img.name} className="w-full h-full object-cover" />
+                </a>
+              ))}
+            </div>
+          </Section>
+        )}
+        {entity.documents?.length > 0 && (
+          <Section label="Documents">
+            <div className="space-y-2">
+              {entity.documents.map((doc, i) => (
+                <a
+                  key={i}
+                  href={doc.dataUrl}
+                  download={doc.name}
+                  className="flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300 transition-colors bg-[var(--bg-base)] border border-[var(--border)] rounded-lg px-3 py-2"
+                >
+                  <DocumentIcon className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{doc.name}</span>
+                </a>
               ))}
             </div>
           </Section>

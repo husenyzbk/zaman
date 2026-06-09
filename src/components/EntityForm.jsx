@@ -1,7 +1,8 @@
 import { useState, useMemo, useRef } from 'react'
-import { XMarkIcon, PlusIcon, TrashIcon, PaperClipIcon, DocumentIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon, PlusIcon, TrashIcon, PaperClipIcon, DocumentIcon, PhotoIcon } from '@heroicons/react/24/outline'
 import { CATEGORIES } from '../utils/categories'
 import RichTextEditor from './RichTextEditor'
+import PersonPicker from './PersonPicker'
 
 const EMPTY_FORM = {
   title: '',
@@ -13,6 +14,8 @@ const EMPTY_FORM = {
   people: [],
   references: [],
   links: [],
+  images: [],
+  documents: [],
   color: '#6366f1',
   category: '',
   milestone: false,
@@ -24,7 +27,7 @@ const COLORS = [
   '#3b82f6', '#06b6d4',
 ]
 
-const MAX_FILE_BYTES = 2 * 1024 * 1024 // 2MB
+const MAX_FILE_BYTES = 10 * 1024 * 1024 // 10MB
 
 function normalizeRef(r) {
   return typeof r === 'string' ? { text: r } : r
@@ -34,6 +37,8 @@ export default function EntityForm({ type, initial, onSave, onClose, minDate, ma
   const [form, setForm] = useState({ ...EMPTY_FORM, ...initial })
   const [dateError, setDateError] = useState('')
   const fileRef = useRef(null)
+  const imageFileRef = useRef(null)
+  const docFileRef = useRef(null)
   const [pendingFile, setPendingFile] = useState(null)
 
   const willPromoteToChapter = useMemo(() => {
@@ -42,7 +47,6 @@ export default function EntityForm({ type, initial, onSave, onClose, minDate, ma
     return days > 30
   }, [type, form.date, form.endDate])
 
-  const [newPerson, setNewPerson] = useState('')
   const [newRef, setNewRef] = useState('')
   const [newLink, setNewLink] = useState({ label: '', url: '' })
 
@@ -78,7 +82,7 @@ export default function EntityForm({ type, initial, onSave, onClose, minDate, ma
     const file = e.target.files[0]
     if (!file) return
     if (file.size > MAX_FILE_BYTES) {
-      alert('File too large. Maximum size is 2MB.')
+      alert('File too large. Maximum size is 10MB.')
       e.target.value = ''
       return
     }
@@ -89,6 +93,20 @@ export default function EntityForm({ type, initial, onSave, onClose, minDate, ma
     })
     setPendingFile({ name: file.name, dataUrl, type: file.type })
     e.target.value = ''
+  }
+
+  async function handleMultiFileSelect(e, field) {
+    const files = [...e.target.files]
+    e.target.value = ''
+    const tooBig = files.filter((f) => f.size > MAX_FILE_BYTES)
+    if (tooBig.length) alert(`Skipped ${tooBig.length} file(s) over 10MB.`)
+    const valid = files.filter((f) => f.size <= MAX_FILE_BYTES)
+    const items = await Promise.all(valid.map((file) => new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = (ev) => resolve({ name: file.name, dataUrl: ev.target.result, type: file.type })
+      reader.readAsDataURL(file)
+    })))
+    setForm((f) => ({ ...f, [field]: [...(f[field] || []), ...items] }))
   }
 
   function addRef() {
@@ -333,31 +351,75 @@ export default function EntityForm({ type, initial, onSave, onClose, minDate, ma
           {/* People */}
           <div>
             <label className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">People Involved</label>
-            <div className="flex gap-2 mb-2">
-              <input
-                className="flex-1 bg-[var(--bg-base)] border border-[var(--border)] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-                value={newPerson}
-                onChange={(e) => setNewPerson(e.target.value)}
-                placeholder="Add a person..."
-                onKeyDown={(e) => e.key === 'Enter' && addToList('people', newPerson.trim(), () => setNewPerson(''))}
-              />
-              <button
-                onClick={() => addToList('people', newPerson.trim(), () => setNewPerson(''))}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg px-3 transition-colors"
-              >
-                <PlusIcon className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {form.people?.map((p, i) => (
-                <span key={i} className="flex items-center gap-1 bg-[var(--border)] text-slate-200 text-xs px-2 py-1 rounded-full">
-                  {p}
-                  <button onClick={() => removeFromList('people', i)} className="text-slate-400 hover:text-red-400">
-                    <XMarkIcon className="w-3 h-3" />
-                  </button>
-                </span>
-              ))}
-            </div>
+            <PersonPicker people={form.people} onChange={(people) => setField('people', people)} />
+          </div>
+
+          {/* Images */}
+          <div>
+            <label className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">Images</label>
+            <input
+              ref={imageFileRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => handleMultiFileSelect(e, 'images')}
+            />
+            <button
+              onClick={() => imageFileRef.current?.click()}
+              className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-indigo-400 transition-colors mb-2"
+            >
+              <PhotoIcon className="w-3.5 h-3.5" />
+              Add image{form.images?.length ? 's' : ''} <span className="text-slate-600">(max 10MB each)</span>
+            </button>
+            {form.images?.length > 0 && (
+              <div className="grid grid-cols-4 gap-2">
+                {form.images.map((img, i) => (
+                  <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-[var(--border)]">
+                    <img src={img.dataUrl} alt={img.name} className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => removeFromList('images', i)}
+                      className="absolute top-1 right-1 bg-black/60 hover:bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <XMarkIcon className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Documents */}
+          <div>
+            <label className="text-xs text-slate-400 uppercase tracking-wider mb-1 block">Documents</label>
+            <input
+              ref={docFileRef}
+              type="file"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
+              multiple
+              className="hidden"
+              onChange={(e) => handleMultiFileSelect(e, 'documents')}
+            />
+            <button
+              onClick={() => docFileRef.current?.click()}
+              className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-indigo-400 transition-colors mb-2"
+            >
+              <DocumentIcon className="w-3.5 h-3.5" />
+              Add document{form.documents?.length ? 's' : ''} <span className="text-slate-600">(max 10MB each)</span>
+            </button>
+            {form.documents?.length > 0 && (
+              <div className="space-y-1.5">
+                {form.documents.map((doc, i) => (
+                  <div key={i} className="flex items-center gap-2 bg-[var(--bg-base)] px-3 py-2 rounded-lg text-sm">
+                    <DocumentIcon className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                    <span className="text-slate-300 truncate flex-1">{doc.name}</span>
+                    <button onClick={() => removeFromList('documents', i)} className="text-slate-500 hover:text-red-400 flex-shrink-0">
+                      <TrashIcon className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* References */}
@@ -374,7 +436,7 @@ export default function EntityForm({ type, initial, onSave, onClose, minDate, ma
               <button
                 onClick={() => fileRef.current?.click()}
                 className="bg-[var(--bg-base)] hover:bg-[var(--bg-surface)] border border-[var(--border)] text-slate-400 hover:text-white rounded-lg px-3 transition-colors"
-                title="Attach a file (PDF, PNG, JPG — max 2MB)"
+                title="Attach a file (PDF, PNG, JPG — max 10MB)"
               >
                 <PaperClipIcon className="w-4 h-4" />
               </button>

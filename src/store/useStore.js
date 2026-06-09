@@ -26,6 +26,7 @@ function createRoom(name, colorIndex) {
     chapters: [],
     connections: [],
     stickyNotes: [],
+    peopleDb: [],
     zoom: 1,
     scrollX: defaultScrollX,
     density: 'default',
@@ -54,6 +55,7 @@ const useStore = create(
       chapters: [],
       connections: [],
       stickyNotes: [],
+      peopleDb: [],
 
       past: [],
       future: [],
@@ -117,11 +119,11 @@ const useStore = create(
 
       // --- War room actions ---
       switchWarRoom: (id) => {
-        const { activeWarRoomId, warRooms, events, chapters, connections, stickyNotes, zoom, scrollX, density } = get()
+        const { activeWarRoomId, warRooms, events, chapters, connections, stickyNotes, peopleDb, zoom, scrollX, density } = get()
         if (activeWarRoomId === id) return
         const updatedRooms = warRooms.map((r) =>
           r.id === activeWarRoomId
-            ? { ...r, events, chapters, connections, stickyNotes, zoom, scrollX, density }
+            ? { ...r, events, chapters, connections, stickyNotes, peopleDb, zoom, scrollX, density }
             : r
         )
         const newRoom = updatedRooms.find((r) => r.id === id)
@@ -133,6 +135,7 @@ const useStore = create(
           chapters: newRoom.chapters || [],
           connections: newRoom.connections || [],
           stickyNotes: newRoom.stickyNotes || [],
+          peopleDb: newRoom.peopleDb || [],
           zoom: newRoom.zoom || 1,
           scrollX: newRoom.scrollX ?? defaultScrollX,
           density: newRoom.density || 'default',
@@ -142,10 +145,10 @@ const useStore = create(
       },
 
       addWarRoom: (name) => {
-        const { warRooms, activeWarRoomId, events, chapters, connections, stickyNotes, zoom, scrollX, density } = get()
+        const { warRooms, activeWarRoomId, events, chapters, connections, stickyNotes, peopleDb, zoom, scrollX, density } = get()
         const updatedRooms = warRooms.map((r) =>
           r.id === activeWarRoomId
-            ? { ...r, events, chapters, connections, stickyNotes, zoom, scrollX, density }
+            ? { ...r, events, chapters, connections, stickyNotes, peopleDb, zoom, scrollX, density }
             : r
         )
         const newRoom = createRoom(name || `War Room ${warRooms.length + 1}`, warRooms.length)
@@ -156,6 +159,7 @@ const useStore = create(
           chapters: [],
           connections: [],
           stickyNotes: [],
+          peopleDb: [],
           zoom: 1,
           scrollX: defaultScrollX,
           density: 'default',
@@ -181,6 +185,7 @@ const useStore = create(
             chapters: next.chapters || [],
             connections: next.connections || [],
             stickyNotes: next.stickyNotes || [],
+            peopleDb: next.peopleDb || [],
             zoom: next.zoom || 1,
             scrollX: next.scrollX ?? defaultScrollX,
             density: next.density || 'default',
@@ -287,6 +292,40 @@ const useStore = create(
         const s = get()
         set({ ...snap(get), stickyNotes: s.stickyNotes.filter((n) => n.id !== id) })
       },
+
+      // --- People database ---
+      addPerson: (name) => {
+        const trimmed = name.trim()
+        if (!trimmed) return null
+        const { peopleDb } = get()
+        const existing = peopleDb.find((p) => p.name.toLowerCase() === trimmed.toLowerCase())
+        if (existing) return existing.id
+        const person = { id: crypto.randomUUID(), name: trimmed, photo: null, bio: '' }
+        set({ peopleDb: [...peopleDb, person] })
+        return person.id
+      },
+      updatePerson: (id, updates) => {
+        const { peopleDb, events, chapters } = get()
+        const person = peopleDb.find((p) => p.id === id)
+        if (!person) return
+        const renaming = updates.name && updates.name.trim() && updates.name.trim() !== person.name
+        const newName = renaming ? updates.name.trim() : person.name
+        set({
+          peopleDb: peopleDb.map((p) => (p.id === id ? { ...p, ...updates, name: newName } : p)),
+          ...(renaming ? {
+            events: events.map((e) => ({ ...e, people: (e.people || []).map((n) => n === person.name ? newName : n) })),
+            chapters: chapters.map((c) => ({
+              ...c,
+              people: (c.people || []).map((n) => n === person.name ? newName : n),
+              subEvents: (c.subEvents || []).map((se) => ({ ...se, people: (se.people || []).map((n) => n === person.name ? newName : n) })),
+            })),
+          } : {}),
+        })
+      },
+      deletePerson: (id) => {
+        const { peopleDb } = get()
+        set({ peopleDb: peopleDb.filter((p) => p.id !== id) })
+      },
     }),
     {
       name: 'zaman-storage',
@@ -323,6 +362,7 @@ const useStore = create(
                   chapters: state.chapters || [],
                   connections: state.connections || [],
                   stickyNotes: state.stickyNotes || [],
+                  peopleDb: state.peopleDb || [],
                   zoom: state.zoom || 1,
                   scrollX: state.scrollX ?? defaultScrollX,
                   density: state.density || 'default',
@@ -338,6 +378,7 @@ const useStore = create(
         chapters: s.chapters,
         connections: s.connections,
         stickyNotes: s.stickyNotes,
+        peopleDb: s.peopleDb,
         zoom: s.zoom,
         scrollX: s.scrollX,
         density: s.density,
