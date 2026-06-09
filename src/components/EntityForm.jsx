@@ -9,6 +9,7 @@ const EMPTY_FORM = {
   endDate: '',
   description: '',
   opinion: '',
+  customBoxes: [],
   people: [],
   references: [],
   links: [],
@@ -295,6 +296,39 @@ export default function EntityForm({ type, initial, onSave, onClose, minDate, ma
               minHeight={48}
             />
           </div>
+
+          {/* Custom boxes */}
+          {(form.customBoxes || []).map((box) => (
+            <div key={box.id}>
+              <div className="flex items-center gap-2 mb-1">
+                <input
+                  className="flex-1 bg-transparent border-b border-[var(--border)] text-xs text-slate-300 uppercase tracking-wider pb-0.5 focus:outline-none focus:border-indigo-500 transition-colors"
+                  value={box.title}
+                  onChange={(e) => setField('customBoxes', form.customBoxes.map((b) => b.id === box.id ? { ...b, title: e.target.value } : b))}
+                  placeholder="Box title..."
+                />
+                <button
+                  onClick={() => setField('customBoxes', form.customBoxes.filter((b) => b.id !== box.id))}
+                  className="text-slate-600 hover:text-red-400 transition-colors flex-shrink-0"
+                >
+                  <TrashIcon className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <RichTextEditor
+                value={box.content}
+                onChange={(val) => setField('customBoxes', form.customBoxes.map((b) => b.id === box.id ? { ...b, content: val } : b))}
+                placeholder="Write here..."
+                minHeight={48}
+              />
+            </div>
+          ))}
+          <button
+            onClick={() => setField('customBoxes', [...(form.customBoxes || []), { id: crypto.randomUUID(), title: '', content: '' }])}
+            className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-indigo-400 transition-colors"
+          >
+            <PlusIcon className="w-3.5 h-3.5" />
+            Add custom box
+          </button>
 
           {/* People */}
           <div>

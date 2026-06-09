@@ -149,6 +149,14 @@ export default function DetailPanel({ entity, type, onClose, onEdit, onDelete })
             />
           </Section>
         )}
+        {entity.customBoxes?.filter((b) => b.content).map((box) => (
+          <Section key={box.id} label={box.title || 'Custom'}>
+            <div
+              className="prose-content text-sm text-slate-300 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: box.content }}
+            />
+          </Section>
+        ))}
         {entity.people?.length > 0 && (
           <Section label="People Involved">
             <div className="flex flex-wrap gap-2">
