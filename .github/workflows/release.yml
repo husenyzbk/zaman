@@ -25,7 +25,7 @@ jobs:
         run: npm ci
 
       - name: Set version from tag
-        run: node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.version=process.env.GITHUB_REF_NAME.replace(/^v/,'');fs.writeFileSync('package.json',JSON.stringify(p,null,2));"
+        run: node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.version=process.env.GITHUB_REF_NAME.replace(/^[vV]/,'');fs.writeFileSync('package.json',JSON.stringify(p,null,2));"
 
       - name: Build and publish
         env:
