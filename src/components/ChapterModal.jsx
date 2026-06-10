@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { XMarkIcon, PlusIcon, PencilIcon, TrashIcon, ArrowsRightLeftIcon, MapIcon, LinkIcon, DocumentIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon, PlusIcon, PencilIcon, TrashIcon, ArrowsRightLeftIcon, MapIcon, LinkIcon, DocumentIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import useStore from '../store/useStore'
 import EntityForm from './EntityForm'
 import ConfirmDialog from './ConfirmDialog'
 import RelationshipPicker from './RelationshipPicker'
 import EntityPicker from './EntityPicker'
+import MediaLightbox from './MediaLightbox'
 import { formatDate, formatDateRange } from '../utils/format'
 import { RELATIONSHIP_MAP } from '../utils/connections'
 import { CATEGORY_MAP } from '../utils/categories'
@@ -24,13 +25,14 @@ function RichContent({ html, className }) {
 }
 
 export default function ChapterModal({ chapter, onClose, onOpenTimeline, initialSubEventId }) {
-  const { addSubEvent, updateSubEvent, deleteSubEvent, updateChapter, deleteChapter, connections, addConnection, deleteConnection, events, chapters } = useStore()
+  const { addSubEvent, updateSubEvent, deleteSubEvent, updateChapter, deleteChapter, connections, addConnection, deleteConnection, events, chapters, peopleDb } = useStore()
 
   const [showSubEventForm, setShowSubEventForm] = useState(false)
   const [editingSubEvent, setEditingSubEvent] = useState(null)
   const [editingChapter, setEditingChapter] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(null)
   const [showChapterDetails, setShowChapterDetails] = useState(false)
+  const [lightboxItem, setLightboxItem] = useState(null)
 
   // Sub-event connection flow
   const [pickingTarget, setPickingTarget] = useState(false)
@@ -42,6 +44,11 @@ export default function ChapterModal({ chapter, onClose, onOpenTimeline, initial
   )
 
   const hasChapterDetails = chapter.opinion || (chapter.people?.length > 0) || (chapter.references?.length > 0) || (chapter.links?.length > 0)
+    || (chapter.customBoxes?.some((b) => b.content)) || (chapter.images?.length > 0) || (chapter.documents?.length > 0)
+
+  function personPhoto(name) {
+    return peopleDb?.find((p) => p.name === name)?.photo
+  }
 
   function handleAddSubEvent(form) {
     addSubEvent(chapter.id, form)
@@ -103,8 +110,8 @@ export default function ChapterModal({ chapter, onClose, onOpenTimeline, initial
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 p-6">
-      <div className="bg-[var(--bg-modal)] border border-[var(--border)] rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl">
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm p-6">
+      <div className="zam-glass-strong zam-glass-edge zam-elevated rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
         {/* Chapter header */}
         <div className="flex items-center justify-between p-5 rounded-t-2xl flex-shrink-0" style={{ borderBottom: `2px solid ${chapter.color || '#6366f1'}` }}>
           <div className="flex items-center gap-3">
@@ -164,7 +171,7 @@ export default function ChapterModal({ chapter, onClose, onOpenTimeline, initial
                 className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 mb-4 transition-colors"
               >
                 <span>{showChapterDetails ? '▾' : '▸'}</span>
-                {showChapterDetails ? 'Hide chapter details' : 'Show chapter details (opinion, people, references, links)'}
+                {showChapterDetails ? 'Hide chapter details' : 'Show chapter details (opinion, people, images, documents, references, links)'}
               </button>
             )}
 
@@ -180,12 +187,61 @@ export default function ChapterModal({ chapter, onClose, onOpenTimeline, initial
                     />
                   </div>
                 )}
+                {chapter.customBoxes?.filter((b) => b.content).map((box) => (
+                  <div key={box.id}>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1.5">{box.title || 'Custom'}</p>
+                    <RichContent html={box.content} className="text-sm text-slate-400" />
+                  </div>
+                ))}
                 {chapter.people?.length > 0 && (
                   <div>
                     <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1.5">People Involved</p>
                     <div className="flex flex-wrap gap-1.5">
-                      {chapter.people.map((p, i) => (
-                        <span key={i} className="text-xs bg-[var(--bg-surface)] border border-[var(--border)] text-slate-300 px-2.5 py-1 rounded-full">{p}</span>
+                      {chapter.people.map((p, i) => {
+                        const photo = personPhoto(p)
+                        return (
+                          <span key={i} className="flex items-center gap-1.5 bg-[var(--bg-surface)] border border-[var(--border)] text-slate-300 text-xs pl-1 pr-2.5 py-1 rounded-full">
+                            {photo ? (
+                              <img src={photo} alt={p} className="w-4 h-4 rounded-full object-cover" />
+                            ) : (
+                              <UserCircleIcon className="w-4 h-4 text-slate-500" />
+                            )}
+                            {p}
+                          </span>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+                {chapter.images?.length > 0 && (
+                  <div>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1.5">Images</p>
+                    <div className="grid grid-cols-6 gap-2">
+                      {chapter.images.map((img, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setLightboxItem(img)}
+                          className="block aspect-square rounded-lg overflow-hidden border border-[var(--border)] hover:opacity-90 transition-opacity"
+                        >
+                          <img src={img.dataUrl} alt={img.name} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {chapter.documents?.length > 0 && (
+                  <div>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1.5">Documents</p>
+                    <div className="space-y-2">
+                      {chapter.documents.map((doc, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setLightboxItem(doc)}
+                          className="w-full flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300 transition-colors bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-3 py-2"
+                        >
+                          <DocumentIcon className="w-4 h-4 flex-shrink-0" />
+                          <span className="truncate">{doc.name}</span>
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -204,14 +260,14 @@ export default function ChapterModal({ chapter, onClose, onOpenTimeline, initial
                               {ref.attachment && (
                                 <div className="mt-1">
                                   {ref.attachment.type?.startsWith('image/') ? (
-                                    <a href={ref.attachment.dataUrl} target="_blank" rel="noreferrer">
-                                      <img src={ref.attachment.dataUrl} alt={ref.attachment.name} className="max-h-20 w-auto rounded-lg border border-[var(--border)] object-cover" />
-                                    </a>
+                                    <button onClick={() => setLightboxItem(ref.attachment)}>
+                                      <img src={ref.attachment.dataUrl} alt={ref.attachment.name} className="max-h-20 w-auto rounded-lg border border-[var(--border)] object-cover hover:opacity-90 transition-opacity" />
+                                    </button>
                                   ) : (
-                                    <a href={ref.attachment.dataUrl} download={ref.attachment.name} className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300">
+                                    <button onClick={() => setLightboxItem(ref.attachment)} className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300">
                                       <DocumentIcon className="w-3.5 h-3.5 flex-shrink-0" />
                                       <span className="truncate">{ref.attachment.name}</span>
-                                    </a>
+                                    </button>
                                   )}
                                 </div>
                               )}
@@ -244,7 +300,7 @@ export default function ChapterModal({ chapter, onClose, onOpenTimeline, initial
               </h3>
               <button
                 onClick={() => setShowSubEventForm(true)}
-                className="flex items-center gap-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors"
+                className="zam-lift flex items-center gap-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors"
               >
                 <PlusIcon className="w-3.5 h-3.5" /> Add Sub-event
               </button>
@@ -336,12 +392,61 @@ export default function ChapterModal({ chapter, onClose, onOpenTimeline, initial
                     />
                   </div>
                 )}
+                {selectedSubEvent.customBoxes?.filter((b) => b.content).map((box) => (
+                  <div key={box.id}>
+                    <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">{box.title || 'Custom'}</p>
+                    <RichContent html={box.content} className="text-xs text-slate-300" />
+                  </div>
+                ))}
                 {selectedSubEvent.people?.length > 0 && (
                   <div>
                     <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">People</p>
                     <div className="flex flex-wrap gap-1">
-                      {selectedSubEvent.people.map((p, i) => (
-                        <span key={i} className="text-xs bg-[var(--bg-base)] border border-[var(--border)] text-slate-300 px-2 py-0.5 rounded-full">{p}</span>
+                      {selectedSubEvent.people.map((p, i) => {
+                        const photo = personPhoto(p)
+                        return (
+                          <span key={i} className="flex items-center gap-1 bg-[var(--bg-base)] border border-[var(--border)] text-slate-300 text-xs pl-1 pr-2 py-0.5 rounded-full">
+                            {photo ? (
+                              <img src={photo} alt={p} className="w-3.5 h-3.5 rounded-full object-cover" />
+                            ) : (
+                              <UserCircleIcon className="w-3.5 h-3.5 text-slate-500" />
+                            )}
+                            {p}
+                          </span>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+                {selectedSubEvent.images?.length > 0 && (
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Images</p>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {selectedSubEvent.images.map((img, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setLightboxItem(img)}
+                          className="block aspect-square rounded-lg overflow-hidden border border-[var(--border)] hover:opacity-90 transition-opacity"
+                        >
+                          <img src={img.dataUrl} alt={img.name} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {selectedSubEvent.documents?.length > 0 && (
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Documents</p>
+                    <div className="space-y-1.5">
+                      {selectedSubEvent.documents.map((doc, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setLightboxItem(doc)}
+                          className="w-full flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 transition-colors bg-[var(--bg-base)] border border-[var(--border)] rounded-lg px-2 py-1.5"
+                        >
+                          <DocumentIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                          <span className="truncate">{doc.name}</span>
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -360,14 +465,14 @@ export default function ChapterModal({ chapter, onClose, onOpenTimeline, initial
                               {ref.attachment && (
                                 <div className="mt-1">
                                   {ref.attachment.type?.startsWith('image/') ? (
-                                    <a href={ref.attachment.dataUrl} target="_blank" rel="noreferrer">
-                                      <img src={ref.attachment.dataUrl} alt={ref.attachment.name} className="max-h-16 w-auto rounded border border-[var(--border)] object-cover" />
-                                    </a>
+                                    <button onClick={() => setLightboxItem(ref.attachment)}>
+                                      <img src={ref.attachment.dataUrl} alt={ref.attachment.name} className="max-h-16 w-auto rounded border border-[var(--border)] object-cover hover:opacity-90 transition-opacity" />
+                                    </button>
                                   ) : (
-                                    <a href={ref.attachment.dataUrl} download={ref.attachment.name} className="flex items-center gap-1 text-[10px] text-indigo-400 hover:text-indigo-300">
+                                    <button onClick={() => setLightboxItem(ref.attachment)} className="flex items-center gap-1 text-[10px] text-indigo-400 hover:text-indigo-300">
                                       <DocumentIcon className="w-3 h-3 flex-shrink-0" />
                                       <span className="truncate">{ref.attachment.name}</span>
-                                    </a>
+                                    </button>
                                   )}
                                 </div>
                               )}
@@ -469,6 +574,10 @@ export default function ChapterModal({ chapter, onClose, onOpenTimeline, initial
           onConfirm={handleConfirmSubEventConn}
           onCancel={() => setPendingConnTarget(null)}
         />
+      )}
+
+      {lightboxItem && (
+        <MediaLightbox item={lightboxItem} onClose={() => setLightboxItem(null)} />
       )}
     </div>
   )

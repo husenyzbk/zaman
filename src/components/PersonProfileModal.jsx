@@ -6,10 +6,10 @@ import ConfirmDialog from './ConfirmDialog'
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024 // 10MB
 
 export default function PersonProfileModal({ person, onClose }) {
-  const { updatePerson, deletePerson } = useStore()
-  const [name, setName] = useState(person.name)
-  const [bio, setBio] = useState(person.bio || '')
-  const [photo, setPhoto] = useState(person.photo || null)
+  const { addPerson, updatePerson, deletePerson } = useStore()
+  const [name, setName] = useState(person?.name || '')
+  const [bio, setBio] = useState(person?.bio || '')
+  const [photo, setPhoto] = useState(person?.photo || null)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const fileRef = useRef(null)
 
@@ -31,16 +31,22 @@ export default function PersonProfileModal({ person, onClose }) {
   }
 
   function handleSave() {
-    if (!name.trim()) return
-    updatePerson(person.id, { name: name.trim(), bio, photo })
+    const trimmed = name.trim()
+    if (!trimmed) return
+    if (person) {
+      updatePerson(person.id, { name: trimmed, bio, photo })
+    } else {
+      const id = addPerson(trimmed)
+      if (bio || photo) updatePerson(id, { bio, photo })
+    }
     onClose()
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
-      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl w-full max-w-sm shadow-2xl flex flex-col max-h-[85vh]">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="zam-glass-strong zam-glass-edge zam-elevated rounded-2xl w-full max-w-sm flex flex-col max-h-[85vh]">
         <div className="flex items-center justify-between p-5 border-b border-[var(--border)]">
-          <h2 className="text-lg font-semibold text-white">Person Profile</h2>
+          <h2 className="text-lg font-semibold text-white">{person ? 'Person Profile' : 'New Person'}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
             <XMarkIcon className="w-5 h-5" />
           </button>
@@ -79,6 +85,8 @@ export default function PersonProfileModal({ person, onClose }) {
               className="w-full bg-[var(--bg-base)] border border-[var(--border)] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              placeholder="Enter name..."
+              autoFocus={!person}
             />
           </div>
 
@@ -94,13 +102,15 @@ export default function PersonProfileModal({ person, onClose }) {
             />
           </div>
 
-          <button
-            onClick={() => setConfirmOpen(true)}
-            className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-red-400 transition-colors"
-          >
-            <TrashIcon className="w-3.5 h-3.5" />
-            Delete profile
-          </button>
+          {person && (
+            <button
+              onClick={() => setConfirmOpen(true)}
+              className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-red-400 transition-colors"
+            >
+              <TrashIcon className="w-3.5 h-3.5" />
+              Delete profile
+            </button>
+          )}
         </div>
 
         <div className="flex gap-3 p-5 border-t border-[var(--border)]">
@@ -110,14 +120,14 @@ export default function PersonProfileModal({ person, onClose }) {
           <button
             onClick={handleSave}
             disabled={!name.trim()}
-            className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg py-2 text-sm font-medium transition-colors"
+            className="zam-lift flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg py-2 text-sm font-medium transition-colors"
           >
             Save
           </button>
         </div>
       </div>
 
-      {confirmOpen && (
+      {person && confirmOpen && (
         <ConfirmDialog
           message={`Delete profile for "${person.name}"? They'll remain tagged on existing entities, but their photo and bio will be lost.`}
           onConfirm={() => { deletePerson(person.id); onClose() }}

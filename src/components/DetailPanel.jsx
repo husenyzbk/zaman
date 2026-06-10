@@ -5,6 +5,7 @@ import { RELATIONSHIP_MAP } from '../utils/connections'
 import { CATEGORY_MAP } from '../utils/categories'
 import useStore from '../store/useStore'
 import ConfirmDialog from './ConfirmDialog'
+import MediaLightbox from './MediaLightbox'
 
 function normalizeRef(r) {
   return typeof r === 'string' ? { text: r } : r
@@ -18,6 +19,7 @@ export default function DetailPanel({ entity, type, onClose, onEdit, onDelete })
   const { connections, events, chapters, peopleDb, deleteConnection, setConnectingFrom, focusModeId, setFocusMode, clearFocusMode } = useStore()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH)
+  const [lightboxItem, setLightboxItem] = useState(null)
   const dragRef = useRef(null)
 
   function handleDragStart(e) {
@@ -64,7 +66,7 @@ export default function DetailPanel({ entity, type, onClose, onEdit, onDelete })
 
   return (
     <div
-      className="fixed right-0 top-0 h-full bg-[var(--bg-surface)] border-l border-[var(--border)] z-40 flex flex-col shadow-2xl zam-slide-right"
+      className="fixed right-0 top-0 h-full zam-glass-strong border-l border-[var(--border)] z-40 flex flex-col zam-elevated zam-slide-right"
       style={{ width: panelWidth }}
     >
       {/* Drag handle */}
@@ -180,15 +182,13 @@ export default function DetailPanel({ entity, type, onClose, onEdit, onDelete })
           <Section label="Images">
             <div className="grid grid-cols-3 gap-2">
               {entity.images.map((img, i) => (
-                <a
+                <button
                   key={i}
-                  href={img.dataUrl}
-                  target="_blank"
-                  rel="noreferrer"
+                  onClick={() => setLightboxItem(img)}
                   className="block aspect-square rounded-lg overflow-hidden border border-[var(--border)] hover:opacity-90 transition-opacity"
                 >
                   <img src={img.dataUrl} alt={img.name} className="w-full h-full object-cover" />
-                </a>
+                </button>
               ))}
             </div>
           </Section>
@@ -197,15 +197,14 @@ export default function DetailPanel({ entity, type, onClose, onEdit, onDelete })
           <Section label="Documents">
             <div className="space-y-2">
               {entity.documents.map((doc, i) => (
-                <a
+                <button
                   key={i}
-                  href={doc.dataUrl}
-                  download={doc.name}
-                  className="flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300 transition-colors bg-[var(--bg-base)] border border-[var(--border)] rounded-lg px-3 py-2"
+                  onClick={() => setLightboxItem(doc)}
+                  className="w-full flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300 transition-colors bg-[var(--bg-base)] border border-[var(--border)] rounded-lg px-3 py-2"
                 >
                   <DocumentIcon className="w-4 h-4 flex-shrink-0" />
                   <span className="truncate">{doc.name}</span>
-                </a>
+                </button>
               ))}
             </div>
           </Section>
@@ -223,22 +222,21 @@ export default function DetailPanel({ entity, type, onClose, onEdit, onDelete })
                       {ref.attachment && (
                         <div className="mt-1.5">
                           {ref.attachment.type?.startsWith('image/') ? (
-                            <a href={ref.attachment.dataUrl} target="_blank" rel="noreferrer">
+                            <button onClick={() => setLightboxItem(ref.attachment)}>
                               <img
                                 src={ref.attachment.dataUrl}
                                 alt={ref.attachment.name}
                                 className="max-h-24 w-auto rounded-lg border border-[var(--border)] object-cover hover:opacity-90 transition-opacity"
                               />
-                            </a>
+                            </button>
                           ) : (
-                            <a
-                              href={ref.attachment.dataUrl}
-                              download={ref.attachment.name}
+                            <button
+                              onClick={() => setLightboxItem(ref.attachment)}
                               className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
                             >
                               <DocumentIcon className="w-3.5 h-3.5 flex-shrink-0" />
                               <span className="truncate">{ref.attachment.name}</span>
-                            </a>
+                            </button>
                           )}
                         </div>
                       )}
@@ -315,6 +313,10 @@ export default function DetailPanel({ entity, type, onClose, onEdit, onDelete })
           onConfirm={() => { setConfirmOpen(false); onDelete() }}
           onCancel={() => setConfirmOpen(false)}
         />
+      )}
+
+      {lightboxItem && (
+        <MediaLightbox item={lightboxItem} onClose={() => setLightboxItem(null)} />
       )}
     </div>
   )

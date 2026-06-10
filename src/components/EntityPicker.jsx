@@ -22,8 +22,8 @@ export default function EntityPicker({ excludeId, onSelect, onCancel }) {
   const TYPE_COLOR = { event: '#6366f1', chapter: '#8b5cf6' }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
-      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl w-full max-w-md shadow-2xl flex flex-col max-h-[70vh]">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="zam-glass-strong zam-glass-edge zam-elevated rounded-2xl w-full max-w-md flex flex-col max-h-[70vh]">
         <div className="flex items-center justify-between p-5 border-b border-[var(--border)] flex-shrink-0">
           <h2 className="text-base font-semibold text-white">Select Target Entity</h2>
           <button onClick={onCancel} className="text-slate-400 hover:text-white">

@@ -140,11 +140,8 @@ export default function TextImportModal({ onClose }) {
   const selectedCount = proposals.filter(r => r.selected).length
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div
-        className="rounded-2xl w-full max-w-2xl max-h-[88vh] flex flex-col shadow-2xl border"
-        style={{ background: 'var(--bg-modal)', borderColor: 'var(--border)' }}
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="zam-glass-strong zam-glass-edge zam-elevated rounded-2xl w-full max-w-2xl max-h-[88vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b flex-shrink-0" style={{ borderColor: 'var(--border)' }}>
           <div>

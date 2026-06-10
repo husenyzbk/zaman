@@ -78,6 +78,7 @@ export default function Timeline() {
   const [showPeopleIndex, setShowPeopleIndex] = useState(false)
   const [highlightedPeople, setHighlightedPeople] = useState(new Set())
   const [editingPersonId, setEditingPersonId] = useState(null)
+  const [addingPerson, setAddingPerson] = useState(false)
   const [editingNoteId, setEditingNoteId] = useState(null)
   const [canvasContextMenu, setCanvasContextMenu] = useState(null) // { screenX, screenY, date, year, yFrac }
 
@@ -186,8 +187,9 @@ export default function Timeline() {
     const add = (people) => (people || []).forEach(p => { if (p) map.set(p, (map.get(p) || 0) + 1) })
     events.forEach(e => add(e.people))
     chapters.forEach(c => { add(c.people); (c.subEvents || []).forEach(se => add(se.people)) })
+    peopleDb.forEach((p) => { if (!map.has(p.name)) map.set(p.name, 0) })
     return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]))
-  }, [events, chapters])
+  }, [events, chapters, peopleDb])
 
   // Entities with contradictory connections (supported+opposed same pair, or causal cycle)
   const conflictedIds = useMemo(() => {
@@ -764,24 +766,22 @@ export default function Timeline() {
         />
 
         {/* People index toggle button */}
-        {allPeople.length > 0 && (
-          <button
-            onClick={() => { setShowPeopleIndex(v => !v); if (showPeopleIndex) setHighlightedPeople(new Set()) }}
-            className="absolute top-2 right-2 z-20 flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-all"
-            style={{
-              background: showPeopleIndex ? '#6366f122' : 'var(--bg-surface)',
-              borderColor: showPeopleIndex ? '#6366f1' : 'var(--border)',
-              color: showPeopleIndex ? '#a5b4fc' : '#6b7280',
-            }}
-            title="People & actors index"
-          >
-            <UsersIcon className="w-3.5 h-3.5" />
-            People
-            {highlightedPeople.size > 0 && (
-              <span className="bg-indigo-500 text-white rounded-full px-1 text-[9px] font-bold">{highlightedPeople.size}</span>
-            )}
-          </button>
-        )}
+        <button
+          onClick={() => { setShowPeopleIndex(v => !v); if (showPeopleIndex) setHighlightedPeople(new Set()) }}
+          className="absolute top-2 right-2 z-20 flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-all"
+          style={{
+            background: showPeopleIndex ? '#6366f122' : 'var(--bg-surface)',
+            borderColor: showPeopleIndex ? '#6366f1' : 'var(--border)',
+            color: showPeopleIndex ? '#a5b4fc' : '#6b7280',
+          }}
+          title="People & actors index"
+        >
+          <UsersIcon className="w-3.5 h-3.5" />
+          People
+          {highlightedPeople.size > 0 && (
+            <span className="bg-indigo-500 text-white rounded-full px-1 text-[9px] font-bold">{highlightedPeople.size}</span>
+          )}
+        </button>
 
         {/* Lane labels */}
         <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ zIndex: 10 }}>
@@ -1174,11 +1174,15 @@ export default function Timeline() {
 
         {/* People index sidebar */}
         {showPeopleIndex && (
-          <div className="absolute right-0 top-0 bottom-0 w-56 bg-[var(--bg-base)]/95 border-l border-[var(--border)] z-20 flex flex-col zam-slide-right" style={{ backdropFilter: 'blur(8px)' }}>
+          <div className="absolute right-0 top-0 bottom-0 w-56 zam-glass border-l border-[var(--border)] z-20 flex flex-col zam-elevated zam-slide-right">
             <div className="flex items-center justify-between px-3 py-2.5 border-b border-[var(--border)] flex-shrink-0">
               <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">People & Actors</span>
               <button onClick={() => { setShowPeopleIndex(false); setHighlightedPeople(new Set()) }} className="text-slate-500 hover:text-white text-xl leading-none transition-colors">×</button>
             </div>
+            <button onClick={() => setAddingPerson(true)} className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 px-3 py-2 text-left border-b border-[var(--border)] transition-colors flex-shrink-0">
+              <PlusIcon className="w-3.5 h-3.5" />
+              Add Person
+            </button>
             {highlightedPeople.size > 0 && (
               <button onClick={() => setHighlightedPeople(new Set())} className="text-xs text-indigo-400 hover:text-indigo-300 px-3 py-2 text-left border-b border-[var(--border)] transition-colors flex-shrink-0">
                 Clear filter ({highlightedPeople.size} selected)
@@ -1186,7 +1190,7 @@ export default function Timeline() {
             )}
             <div className="overflow-y-auto flex-1">
               {allPeople.length === 0 ? (
-                <p className="text-xs text-slate-600 px-3 py-4">No people added to any entity yet.</p>
+                <p className="text-xs text-slate-600 px-3 py-4">No people yet.</p>
               ) : (
                 allPeople.map(([name, count]) => {
                   const active = highlightedPeople.has(name)
@@ -1321,6 +1325,10 @@ export default function Timeline() {
         if (!person) return null
         return <PersonProfileModal person={person} onClose={() => setEditingPersonId(null)} />
       })()}
+
+      {addingPerson && (
+        <PersonProfileModal person={null} onClose={() => setAddingPerson(false)} />
+      )}
     </div>
   )
 }

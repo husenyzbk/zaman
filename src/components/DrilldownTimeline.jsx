@@ -699,7 +699,7 @@ export default function DrilldownTimeline({ chapterId, onClose }) {
         {/* Arrow hover tooltip */}
         {arrowHovered && !arrowMenu && (
           <div
-            className="fixed pointer-events-none z-[200] bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl shadow-2xl p-3"
+            className="fixed pointer-events-none z-[200] zam-glass zam-glass-edge zam-elevated-sm rounded-xl p-3"
             style={{ left: Math.min(arrowHovered.x + 14, window.innerWidth - 208), top: arrowHovered.y - 8, width: 200 }}
           >
             <div className="flex items-center gap-1.5 mb-2">
@@ -858,7 +858,7 @@ export default function DrilldownTimeline({ chapterId, onClose }) {
       {ddContextMenu && (
         <div
           ref={menuRef}
-          className="fixed z-[200] bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl shadow-2xl py-1 overflow-hidden zam-menu-pop"
+          className="fixed z-[200] zam-glass zam-glass-edge zam-elevated-sm rounded-xl py-1 overflow-hidden zam-menu-pop"
           style={{ left: ddContextMenu.x, top: ddContextMenu.y, width: 180 }}
           onContextMenu={(e) => e.preventDefault()}
         >
@@ -900,7 +900,7 @@ export default function DrilldownTimeline({ chapterId, onClose }) {
       {arrowMenu && (
         <div
           ref={arrowMenuRef}
-          className="fixed z-[200] bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl shadow-2xl py-1 overflow-hidden zam-menu-pop"
+          className="fixed z-[200] zam-glass zam-glass-edge zam-elevated-sm rounded-xl py-1 overflow-hidden zam-menu-pop"
           style={{ left: arrowMenu.x, top: arrowMenu.y, width: 224 }}
           onContextMenu={(e) => e.preventDefault()}
         >

@@ -4,6 +4,7 @@ import { RELATIONSHIP_MAP, RELATIONSHIPS } from '../utils/connections'
 import { formatDate } from '../utils/format'
 import DetailPanel from './DetailPanel'
 import EntityForm from './EntityForm'
+import { EyeSlashIcon } from '@heroicons/react/24/outline'
 
 // Edge thickness by relationship importance
 const REL_WIDTHS = {
@@ -35,6 +36,7 @@ export default function GraphView() {
     updateEvent, deleteEvent,
     updateChapter, deleteChapter,
     updateSubEvent, deleteSubEvent,
+    hiddenGraphIds, toggleGraphHidden, unhideAllGraph,
   } = useStore()
 
   const svgRef = useRef(null)
@@ -91,9 +93,17 @@ export default function GraphView() {
     return nodes
   }, [events, chapters])
 
+  const visibleNodes = useMemo(() =>
+    allNodes.filter(n => !hiddenGraphIds.includes(n.id))
+  , [allNodes, hiddenGraphIds])
+
   const visibleConns = useMemo(() =>
-    connections.filter(c => !hiddenRels.has(c.relationship))
-  , [connections, hiddenRels])
+    connections.filter(c =>
+      !hiddenRels.has(c.relationship) &&
+      !hiddenGraphIds.includes(c.fromId) &&
+      !hiddenGraphIds.includes(c.toId)
+    )
+  , [connections, hiddenRels, hiddenGraphIds])
 
   const edges = useMemo(() =>
     visibleConns.map(c => ({
@@ -310,8 +320,18 @@ export default function GraphView() {
           </button>
         )}
         <div className="flex-1" />
+        {hiddenGraphIds.length > 0 && (
+          <div className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border"
+            style={{ borderColor: 'rgba(248,113,113,0.35)', background: 'rgba(248,113,113,0.08)', color: '#f87171' }}>
+            <EyeSlashIcon className="w-3.5 h-3.5" />
+            {hiddenGraphIds.length} hidden
+            <button onClick={unhideAllGraph} className="ml-1 underline hover:text-white transition-colors">
+              Unhide all
+            </button>
+          </div>
+        )}
         <span className="text-xs" style={{ color: 'var(--text-dim)' }}>
-          {allNodes.length} nodes · {connections.length} connections
+          {visibleNodes.length} nodes · {visibleConns.length} connections
         </span>
         <button
           onClick={() => { posRef.current = {}; setPositions({}); setTransform({ x: 0, y: 0, scale: 1 }) }}
@@ -473,7 +493,7 @@ export default function GraphView() {
             })}
 
             {/* ── Nodes ── */}
-            {allNodes.map(node => {
+            {visibleNodes.map(node => {
               const p = positions[node.id]
               if (!p) return null
 
@@ -487,6 +507,7 @@ export default function GraphView() {
               return (
                 <g
                   key={node.id}
+                  className="group"
                   transform={`translate(${p.x},${p.y})`}
                   style={{
                     opacity: isActive ? 1 : 0.1,
@@ -572,6 +593,18 @@ export default function GraphView() {
                         fill={node.color} opacity={0.9}>
                         {node.type === 'chapter' ? 'CHAPTER' : node.type === 'subEvent' ? 'SUB' : 'EVENT'}
                       </text>
+
+                      {/* Hide button (visible on hover) */}
+                      <g
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        transform={`translate(${cd.w / 2 - 17}, ${cd.h / 2 - 17})`}
+                        style={{ cursor: 'pointer' }}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => { e.stopPropagation(); toggleGraphHidden(node.id) }}
+                      >
+                        <rect width={14} height={14} rx={4} fill={cardBg} stroke={cardBorder} />
+                        <EyeSlashIcon x={1.5} y={1.5} width={11} height={11} stroke={cardSub} />
+                      </g>
 
                       {/* Connection count badge */}
                       {connCount > 0 && (

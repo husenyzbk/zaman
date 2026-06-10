@@ -186,7 +186,7 @@ export default function Header({ onNewEvent, onNewChapter, onToggleWarRooms, onO
         </div>
 
       {showDropdown && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl shadow-2xl z-50 overflow-hidden">
+          <div className="absolute top-full left-0 right-0 mt-1 zam-glass zam-glass-edge zam-elevated-sm rounded-xl z-50 overflow-hidden">
             {results.length === 0 ? (
               <p className="text-sm text-slate-500 px-4 py-3">No results for "{query}"</p>
             ) : (
@@ -342,13 +342,13 @@ export default function Header({ onNewEvent, onNewChapter, onToggleWarRooms, onO
 
         <button
           onClick={onNewChapter}
-          className="flex items-center gap-1.5 text-sm bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)] border border-[var(--border)] text-slate-300 px-3 py-1.5 rounded-lg transition-colors"
+          className="zam-lift flex items-center gap-1.5 text-sm bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)] border border-[var(--border)] text-slate-300 px-3 py-1.5 rounded-lg transition-colors"
         >
           <PlusIcon className="w-4 h-4" /> Chapter
         </button>
         <button
           onClick={onNewEvent}
-          className="flex items-center gap-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors"
+          className="zam-lift flex items-center gap-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors"
         >
           <PlusIcon className="w-4 h-4" /> Event
         </button>

@@ -129,8 +129,8 @@ export default function EntityForm({ type, initial, onSave, onClose, minDate, ma
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="zam-glass-strong zam-glass-edge zam-elevated rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-[var(--border)]">
           <h2 className="text-lg font-semibold text-white">
@@ -542,7 +542,7 @@ export default function EntityForm({ type, initial, onSave, onClose, minDate, ma
           <button
             onClick={handleSave}
             disabled={!form.title.trim() || !form.date || (isChapter && !form.endDate) || !!dateError}
-            className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg py-2 text-sm font-medium transition-colors"
+            className="zam-lift flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg py-2 text-sm font-medium transition-colors"
           >
             Save
           </button>

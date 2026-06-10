@@ -33,6 +33,72 @@
   --text-bright: #0f172a;
 }
 
+/* ── Premium surface effects: glass, elevation, motion ───────────────────── */
+:root {
+  --shadow-ambient:    rgba(0, 0, 0, 0.55);
+  --shadow-glow:       rgba(99, 102, 241, 0.18);
+  --glass-tint:        rgba(26, 29, 46, 0.70);
+  --glass-tint-strong: rgba(19, 21, 31, 0.78);
+  --glass-edge-top:    rgba(255, 255, 255, 0.13);
+}
+
+[data-theme="light"] {
+  --shadow-ambient:    rgba(30, 41, 59, 0.16);
+  --shadow-glow:       rgba(99, 102, 241, 0.10);
+  --glass-tint:        rgba(245, 248, 252, 0.70);
+  --glass-tint-strong: rgba(255, 255, 255, 0.78);
+  --glass-edge-top:    rgba(255, 255, 255, 0.95);
+}
+
+/* Frosted glass surfaces (dropdowns, side panels) */
+.zam-glass {
+  background: var(--glass-tint);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+}
+/* Stronger tint for modal dialogs */
+.zam-glass-strong {
+  background: var(--glass-tint-strong);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+}
+/* Bright top edge — catches the "light" like real glass */
+.zam-glass-edge {
+  border: 1px solid var(--border);
+  border-top-color: var(--glass-edge-top);
+}
+
+/* Floating elevation shadows */
+.zam-elevated {
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.15),
+    0 16px 40px -12px var(--shadow-ambient),
+    0 6px 20px -6px var(--shadow-glow);
+}
+.zam-elevated-sm {
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.15),
+    0 8px 20px -6px var(--shadow-ambient);
+}
+
+/* Hover-lift for cards & primary buttons */
+.zam-lift {
+  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.zam-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px -10px var(--shadow-ambient), 0 4px 16px -4px var(--shadow-glow);
+}
+
+/* Global button micro-interactions: gentle press feedback everywhere */
+button:not(:disabled) {
+  transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease, filter 0.15s ease,
+    background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+button:not(:disabled):active {
+  transform: scale(0.96);
+}
+
 /* Light-mode overrides for Tailwind text utilities */
 [data-theme="light"] .text-white   { color: var(--text-bright) !important; }
 [data-theme="light"] .text-slate-100,

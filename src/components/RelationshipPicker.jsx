@@ -7,8 +7,8 @@ export default function RelationshipPicker({ from, to, onConfirm, onCancel }) {
   const [notes, setNotes] = useState('')
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
-      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl w-full max-w-md shadow-2xl">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="zam-glass-strong zam-glass-edge zam-elevated rounded-2xl w-full max-w-md">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-[var(--border)]">
           <div>
@@ -68,7 +68,7 @@ export default function RelationshipPicker({ from, to, onConfirm, onCancel }) {
           <button
             onClick={() => selected && onConfirm(selected, notes)}
             disabled={!selected}
-            className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg py-2 text-sm font-medium transition-colors"
+            className="zam-lift flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg py-2 text-sm font-medium transition-colors"
           >
             Create Connection
           </button>

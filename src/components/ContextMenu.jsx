@@ -29,7 +29,7 @@ export default function ContextMenu({ x, y, entity, type, isExpanded, onEdit, on
   return (
     <div
       ref={ref}
-      className="fixed z-[100] bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl shadow-2xl py-1 overflow-hidden zam-menu-pop"
+      className="fixed z-[100] zam-glass zam-glass-edge zam-elevated-sm rounded-xl py-1 overflow-hidden zam-menu-pop"
       style={{ left: px, top: py, width: menuW }}
       onContextMenu={(e) => e.preventDefault()}
     >

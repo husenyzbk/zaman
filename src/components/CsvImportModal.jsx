@@ -125,8 +125,8 @@ export default function CsvImportModal({ onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl w-full max-w-2xl max-h-[88vh] flex flex-col shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="zam-glass-strong zam-glass-edge zam-elevated rounded-2xl w-full max-w-2xl max-h-[88vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-[var(--border)]">
           <div>
@@ -216,7 +216,7 @@ export default function CsvImportModal({ onClose }) {
           <button
             onClick={handleImport}
             disabled={!parsed?.valid.length || imported}
-            className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg py-2 text-sm font-medium transition-colors"
+            className="zam-lift flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg py-2 text-sm font-medium transition-colors"
           >
             {imported ? `Imported ${parsed.valid.length}` : `Import ${parsed?.valid.length || 0} Event${parsed?.valid.length !== 1 ? 's' : ''}`}
           </button>

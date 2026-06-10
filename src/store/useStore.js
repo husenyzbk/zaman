@@ -27,6 +27,7 @@ function createRoom(name, colorIndex) {
     connections: [],
     stickyNotes: [],
     peopleDb: [],
+    hiddenGraphIds: [],
     zoom: 1,
     scrollX: defaultScrollX,
     density: 'default',
@@ -56,6 +57,7 @@ const useStore = create(
       connections: [],
       stickyNotes: [],
       peopleDb: [],
+      hiddenGraphIds: [],
 
       past: [],
       future: [],
@@ -119,11 +121,11 @@ const useStore = create(
 
       // --- War room actions ---
       switchWarRoom: (id) => {
-        const { activeWarRoomId, warRooms, events, chapters, connections, stickyNotes, peopleDb, zoom, scrollX, density } = get()
+        const { activeWarRoomId, warRooms, events, chapters, connections, stickyNotes, peopleDb, hiddenGraphIds, zoom, scrollX, density } = get()
         if (activeWarRoomId === id) return
         const updatedRooms = warRooms.map((r) =>
           r.id === activeWarRoomId
-            ? { ...r, events, chapters, connections, stickyNotes, peopleDb, zoom, scrollX, density }
+            ? { ...r, events, chapters, connections, stickyNotes, peopleDb, hiddenGraphIds, zoom, scrollX, density }
             : r
         )
         const newRoom = updatedRooms.find((r) => r.id === id)
@@ -136,6 +138,7 @@ const useStore = create(
           connections: newRoom.connections || [],
           stickyNotes: newRoom.stickyNotes || [],
           peopleDb: newRoom.peopleDb || [],
+          hiddenGraphIds: newRoom.hiddenGraphIds || [],
           zoom: newRoom.zoom || 1,
           scrollX: newRoom.scrollX ?? defaultScrollX,
           density: newRoom.density || 'default',
@@ -145,10 +148,10 @@ const useStore = create(
       },
 
       addWarRoom: (name) => {
-        const { warRooms, activeWarRoomId, events, chapters, connections, stickyNotes, peopleDb, zoom, scrollX, density } = get()
+        const { warRooms, activeWarRoomId, events, chapters, connections, stickyNotes, peopleDb, hiddenGraphIds, zoom, scrollX, density } = get()
         const updatedRooms = warRooms.map((r) =>
           r.id === activeWarRoomId
-            ? { ...r, events, chapters, connections, stickyNotes, peopleDb, zoom, scrollX, density }
+            ? { ...r, events, chapters, connections, stickyNotes, peopleDb, hiddenGraphIds, zoom, scrollX, density }
             : r
         )
         const newRoom = createRoom(name || `War Room ${warRooms.length + 1}`, warRooms.length)
@@ -160,6 +163,7 @@ const useStore = create(
           connections: [],
           stickyNotes: [],
           peopleDb: [],
+          hiddenGraphIds: [],
           zoom: 1,
           scrollX: defaultScrollX,
           density: 'default',
@@ -186,6 +190,7 @@ const useStore = create(
             connections: next.connections || [],
             stickyNotes: next.stickyNotes || [],
             peopleDb: next.peopleDb || [],
+            hiddenGraphIds: next.hiddenGraphIds || [],
             zoom: next.zoom || 1,
             scrollX: next.scrollX ?? defaultScrollX,
             density: next.density || 'default',
@@ -326,6 +331,17 @@ const useStore = create(
         const { peopleDb } = get()
         set({ peopleDb: peopleDb.filter((p) => p.id !== id) })
       },
+
+      // --- Graph view hide/unhide ---
+      toggleGraphHidden: (id) => {
+        const { hiddenGraphIds } = get()
+        set({
+          hiddenGraphIds: hiddenGraphIds.includes(id)
+            ? hiddenGraphIds.filter((x) => x !== id)
+            : [...hiddenGraphIds, id],
+        })
+      },
+      unhideAllGraph: () => set({ hiddenGraphIds: [] }),
     }),
     {
       name: 'zaman-storage',
@@ -363,6 +379,7 @@ const useStore = create(
                   connections: state.connections || [],
                   stickyNotes: state.stickyNotes || [],
                   peopleDb: state.peopleDb || [],
+                  hiddenGraphIds: state.hiddenGraphIds || [],
                   zoom: state.zoom || 1,
                   scrollX: state.scrollX ?? defaultScrollX,
                   density: state.density || 'default',
@@ -379,6 +396,7 @@ const useStore = create(
         connections: s.connections,
         stickyNotes: s.stickyNotes,
         peopleDb: s.peopleDb,
+        hiddenGraphIds: s.hiddenGraphIds,
         zoom: s.zoom,
         scrollX: s.scrollX,
         density: s.density,

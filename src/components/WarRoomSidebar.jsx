@@ -39,13 +39,13 @@ export default function WarRoomSidebar({ isOpen, onClose }) {
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/40"
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
           onClick={onClose}
         />
       )}
 
       <div
-        className="fixed left-0 top-0 bottom-0 w-56 bg-[var(--bg-deep)] border-r border-[var(--border)] z-50 flex flex-col shadow-2xl"
+        className="fixed left-0 top-0 bottom-0 w-56 zam-glass-strong border-r border-[var(--border)] z-50 flex flex-col zam-elevated"
         style={{
           transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform 0.2s ease',

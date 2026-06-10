@@ -9,8 +9,8 @@ export default function ConfirmDialog({ message, onConfirm, onCancel }) {
   }, [onCancel])
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
-      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="zam-glass-strong zam-glass-edge zam-elevated rounded-2xl p-6 w-full max-w-sm">
         <div className="flex items-start gap-4 mb-5">
           <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
             <ExclamationTriangleIcon className="w-5 h-5 text-red-400" />
@@ -29,7 +29,7 @@ export default function ConfirmDialog({ message, onConfirm, onCancel }) {
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 bg-red-600 hover:bg-red-500 text-white rounded-lg py-2 text-sm font-medium transition-colors"
+            className="zam-lift flex-1 bg-red-600 hover:bg-red-500 text-white rounded-lg py-2 text-sm font-medium transition-colors"
           >
             Delete
           </button>

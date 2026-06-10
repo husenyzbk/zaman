@@ -63,7 +63,7 @@ export default function PersonPicker({ people, onChange }) {
       </div>
 
       {open && (suggestions.length > 0 || (query.trim() && !exactMatch)) && (
-        <div className="absolute z-20 left-0 right-0 mt-[-6px] bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+        <div className="absolute z-20 left-0 right-0 mt-[-6px] zam-glass zam-glass-edge zam-elevated-sm rounded-lg overflow-hidden max-h-48 overflow-y-auto">
           {suggestions.map((p) => (
             <button
               key={p.id}
